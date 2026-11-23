@@ -960,6 +960,8 @@
 
       const state = {
         mode: "lab",
+        apiProbed: false,
+        apiAvailable: null,
         lang: "en",
         theme: "dark",
         paused: false,
@@ -1170,7 +1172,11 @@
       }
 
       async function detectAndFetchSnapshot() {
-        const canTryApi = location.protocol === "http:" || location.protocol === "https:";
+        const isStaticPagesHost = location.hostname.endsWith("github.io");
+        const canTryApi =
+          (location.protocol === "http:" || location.protocol === "https:") &&
+          !isStaticPagesHost &&
+          state.apiAvailable !== false;
         if (canTryApi) {
           try {
             const ctrl = new AbortController();
@@ -1182,14 +1188,16 @@
               if (ct.includes("application/json")) {
                 const data = await res.json();
                 if (data && data.telemetry && Array.isArray(data.alerts)) {
+                  state.apiAvailable = true;
                   state.mode = "live";
                   state.scenario = data.simulation ? data.simulation.active_scenario : "none";
                   return data;
                 }
               }
             }
+            state.apiAvailable = false;
           } catch (_) {
-            // Fall through smoothly to Browser Lab Mode
+            state.apiAvailable = false;
           }
         }
         state.mode = "lab";
