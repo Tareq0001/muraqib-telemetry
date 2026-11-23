@@ -1,0 +1,52 @@
+groups:
+  - name: muraqib_infrastructure_alerts
+    rules:
+      - alert: MuraqibHighCPUUtilization
+        expr: muraqib_cpu_usage_percent > 85
+        for: 15s
+        labels:
+          severity: critical
+          tier: host
+        annotations:
+          summary: "Sustained high CPU utilization (>85%)"
+          description: "Host CPU usage has remained above 85% for 15s (current={{ $value }}%)."
+
+      - alert: MuraqibHighMemoryPressure
+        expr: muraqib_memory_usage_percent > 85
+        for: 15s
+        labels:
+          severity: warning
+          tier: host
+        annotations:
+          summary: "Elevated memory pressure (>85%)"
+          description: "Physical RAM utilization is {{ $value }}%."
+
+      - alert: MuraqibDiskSpaceCritical
+        expr: muraqib_disk_usage_percent > 90
+        for: 30s
+        labels:
+          severity: critical
+          tier: storage
+        annotations:
+          summary: "Root filesystem capacity critical (>90%)"
+          description: "Disk utilization is {{ $value }}%."
+
+      - alert: MuraqibTargetDown
+        expr: muraqib_target_up == 0
+        for: 10s
+        labels:
+          severity: critical
+          tier: synthetic-probe
+        annotations:
+          summary: "Monitored service endpoint is DOWN"
+          description: "Probe target {{ $labels.target }} ({{ $labels.protocol }}) is unreachable."
+
+      - alert: MuraqibHighTargetLatency
+        expr: muraqib_target_latency_ms > 500
+        for: 15s
+        labels:
+          severity: warning
+          tier: synthetic-probe
+        annotations:
+          summary: "Endpoint latency SLA breach (>500ms)"
+          description: "Target {{ $labels.target }} latency is {{ $value }}ms."
